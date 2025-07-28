@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keio Bemani Memory</title>
+    <style>
+        :root {
+            --primary: #4f79a4;
+            --primary-dark: #3d5f7d;
+            --secondary: #6b7280;
+            --accent: #b8860b;
+            --success: #059669;
+            --danger: #dc2626;
+            --background: #e8eaed;
+            --surface: #f1f3f4;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border: #d1d5db;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+        }
+
+        [data-theme="dark"] {
+            --primary: #5a94cc;
+            --primary-dark: #4b7ba7;
+            --secondary: #9ca3af;
+            --accent: #fbbf24;
+            --success: #10b981;
+            --danger: #f87171;
+            --background: #111827;
+            --surface: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --border: #374151;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            color: var(--text-primary);
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .search-panel {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .search-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .filter-select option {
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .results-panel {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .results-header {
+            padding: 1rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .results-content {
+            padding: 1rem;
+        }
+
+        .song-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .song-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .song-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .song-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+        }
+
+        .badge-position { background: var(--primary); color: white; }
+        .badge-difficulty { background: var(--accent); color: white; }
+        .badge-difficulty.hyper { background: #eab308; color: white; }
+        .badge-difficulty.another { background: #ef4444; color: white; }
+        .badge-difficulty.leggendaria { background: #8b5cf6; color: white; }
+        .badge-difficulty.kbm { background: #3b82f6; color: white; }
+        .badge-difficulty.score-display { background: #06b6d4; color: white; } /* 水色固定 */
+        .badge-shinrisen { background: #10b981; color: white; }
+
+        .score-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 0.5rem;
+            align-self: flex-start;
+        }
+
+        .score-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--surface);
+            margin: 2rem auto;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.25rem;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            min-width: 40px;
+        }
+
+        .pagination-btn:hover:not(.disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-dots {
+            padding: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        @media (min-width: 640px) {
+            .search-controls {
+                grid-template-columns: 2fr 1fr;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .song-info {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+            
+            .song-details {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 639px) {
+            .container {
+                padding: 0.75rem;
+            }
+            
+            .header {
+                padding: 1.5rem 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .search-panel {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .song-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .song-title {
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .song-meta {
+                gap: 0.25rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.6rem;
+            }
+            
+            .modal-content {
+                margin: 1rem;
+                width: calc(100% - 2rem);
+            }
+            
+            .modal-header {
+                padding: 1rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .pagination-container {
+                gap: 0.25rem;
+                padding: 0.75rem;
+                margin: 1rem 0;
+            }
+            
+            .pagination-btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+                min-width: 35px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ユーザー情報バー -->
+        <div id="userBar" class="header" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span>ログイン中: <strong id="currentUser"></strong></span>
+                    <span class="badge badge-position" id="currentTeam" style="margin-left: 0.5rem;"></span>
+                </div>
+                <button onclick="logout()" class="score-button" style="background: var(--danger);">ログアウト</button>
+            </div>
+        </div>
+
+        <!-- ログイン・登録フォーム -->
+        <div id="authModal" class="modal" style="display: block;">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">認証</h2>
+                </div>
+                <div class="modal-body">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <button id="loginTab" class="score-button" onclick="showLogin()" style="flex: 1;">ログイン</button>
+                        <button id="registerTab" class="score-button" onclick="showRegister()" style="flex: 1; background: var(--secondary);">新規登録</button>
+                    </div>
+
+                    <!-- ログインフォーム -->
+                    <div id="loginForm">
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" id="loginUsername" class="search-input" placeholder="ユーザー名" required>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <input type="password" id="loginPassword" class="search-input" placeholder="パスワード" required>
+                        </div>
+                        <button onclick="login()" class="score-button" style="width: 100%;">ログイン</button>
+                    </div>
+
+                    <!-- 登録フォーム -->
+                    <div id="registerForm" style="display: none;">
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" id="registerUsername" class="search-input" placeholder="ユーザー名" required>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <input type="password" id="registerPassword" class="search-input" placeholder="パスワード" required>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <input type="email" id="registerEmail" class="search-input" placeholder="メールアドレス（任意）">
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <select id="registerTeam" class="filter-select" required>
+                                <option value="">チームを選択</option>
+                                <option value="KBM">KBM</option>
+                                <option value="BBD">BBD</option>
+                            </select>
+                        </div>
+                        <button onclick="register()" class="score-button" style="width: 100%;">登録</button>
+                    </div>
+
+                    <div id="authMessage" style="margin-top: 1rem; text-align: center;"></div>
+                </div>
+            </div>
+        </div>
+
+        <header class="header">
+            <button class="theme-toggle" onclick="toggleTheme()" title="テーマ切り替え">
+                <span id="theme-icon">🌙</span>
+            </button>
+            <h1>Keio Bemani Memory</h1>
+        </header>
+
+        <div class="search-panel">
+            <div class="search-controls">
+                <input type="text" id="searchInput" class="search-input" placeholder="楽曲名またはプレイヤー名を検索..." oninput="searchSongs()">
+                <select id="searchType" class="filter-select" onchange="updateSearchPlaceholder(); searchSongs();">
+                    <option value="song">楽曲名検索</option>
+                    <option value="player">プレイヤー名検索</option>
+                </select>
+            </div>
+            
+            <div class="filter-row">
+                <select id="positionFilter" class="filter-select" onchange="searchSongs()">
+                    <option value="">全ポジション</option>
+                    <option value="先鋒">先鋒</option>
+                    <option value="次鋒">次鋒</option>
+                    <option value="中堅">中堅</option>
+                    <option value="副将">副将</option>
+                    <option value="大将">大将</option>
+                </select>
+                
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; background: var(--surface); color: var(--text-primary);">
+                    <input type="checkbox" id="shinrisenFilter" onchange="searchSongs()" style="margin: 0;">
+                    <span style="font-size: 0.875rem;">心理戦</span>
+                </label>
+                
+                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; background: var(--surface); color: var(--text-primary);">
+                    <input type="checkbox" id="favoritesFilter" onchange="searchSongs()" style="margin: 0;">
+                    <span style="font-size: 0.875rem;">お気に入りのみ</span>
+                </label>
+                
+                <button onclick="openCsvImportModal()" class="score-button" style="padding: 0.75rem 1rem; border: none; border-radius: 8px; background: var(--accent); color: white; cursor: pointer; font-size: 0.875rem;">
+                    📂 CSVインポート
+                </button>
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <div class="results-header">
+                <span id="resultsCount">楽曲を読み込み中...</span>
+            </div>
+            <div class="results-content">
+                <div id="searchResults">
+                    <div class="empty-state">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スコア編集モーダル -->
+    <div id="scoreModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalSongTitle">楽曲詳細</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="scoresDisplay" style="margin-bottom: 2rem;">
+                    <h4>登録済みスコア</h4>
+                    <div id="scoresTable"></div>
+                </div>
+                
+                <div id="scoreEditSection" style="display: none;">
+                    <h4>スコア編集</h4>
+                    <div style="margin-bottom: 1rem;">
+                        <div id="playerTabs" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                    </div>
+                    <div id="scoreFormContainer"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button id="toggleEditBtn" onclick="toggleEditMode()" class="score-button">📝 スコア編集</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSVインポートモーダル -->
+    <div id="csvImportModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 class="modal-title">CSVインポート</h2>
+                <button class="close-btn" onclick="closeCsvImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">IIDXスコアCSVファイル</label>
+                    <input type="file" id="csvImportFile" accept=".csv" class="search-input" style="padding: 0.5rem;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        ※beatmaniaIIDX公式サイトからダウンロードしたスコアCSVファイルを選択してください<br>
+                        ※自分のスコアのみがインポートされます
+                    </div>
+                </div>
+                <button onclick="executeCsvImport()" class="score-button" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem;">
+                    📂 CSVインポート実行
+                </button>
+                <div id="csvImportProgress" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/score-utils.js"></script>
+    <script>
+        let currentSong = null;
+        let currentPlayer = null;
+        let currentUser = null;
+        let currentPage = 1;
+        let searchTimeout;
+        let userFavorites = new Set(); // ユーザーのお気に入り楽曲を管理
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSession();
+        });
+
+        async function checkSession() {
+            try {
+                const response = await fetch('./api/check_session.php');
+                const result = await response.json();
+                
+                if (result.logged_in) {
+                    currentUser = result.user;
+                    showMainApp();
+                } else {
+                    showAuthModal();
+                }
+            } catch (error) {
+                showAuthModal();
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('authModal').style.display = 'none';
+            document.getElementById('userBar').style.display = 'block';
+            document.getElementById('currentUser').textContent = currentUser.username;
+            document.getElementById('currentTeam').textContent = currentUser.team;
+            loadUserFavorites();
+            loadInitialSongs();
+        }
+
+        // ユーザーのお気に入り一覧を読み込み
+        async function loadUserFavorites() {
+            try {
+                const response = await fetch('./api/favorites.php');
+                const result = await response.json();
+                
+                if (result.success) {
+                    userFavorites.clear();
+                    result.favorites.forEach(fav => {
+                        userFavorites.add(`${fav.song_title}|${fav.difficulty}`);
+                    });
+                }
+            } catch (error) {
+                console.log('お気に入り読み込みエラー:', error);
+            }
+        }
+
+        // お気に入り状態をトグル
+        async function toggleFavorite(songTitle, difficulty) {
+            const favoriteKey = `${songTitle}|${difficulty}`;
+            const isFavorite = userFavorites.has(favoriteKey);
+            
+            try {
+                const method = isFavorite ? 'DELETE' : 'POST';
+                const response = await fetch('./api/favorites.php', {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        song_title: songTitle,
+                        difficulty: difficulty
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (isFavorite) {
+                        userFavorites.delete(favoriteKey);
+                    } else {
+                        userFavorites.add(favoriteKey);
+                    }
+                    
+                    // 表示を更新
+                    updateFavoriteButton(songTitle, difficulty);
+                    
+                    // お気に入りフィルターが有効な場合は検索結果を更新
+                    if (document.getElementById('favoritesFilter').checked) {
+                        performSearch(currentPage);
+                    }
+                } else {
+                    alert('エラー: ' + result.message);
+                }
+            } catch (error) {
+                alert('お気に入り更新エラーが発生しました');
+            }
+        }
+
+        // お気に入りボタンの表示を更新
+        function updateFavoriteButton(songTitle, difficulty) {
+            const favoriteKey = `${songTitle}|${difficulty}`;
+            const isFavorite = userFavorites.has(favoriteKey);
+            const button = document.querySelector(`[data-song-title="${songTitle.replace(/"/g, '&quot;')}"] .favorite-btn`);
+            
+            if (button) {
+                button.style.color = isFavorite ? 'gold' : '#ccc';
+                button.textContent = isFavorite ? '★' : '☆';
+                button.title = isFavorite ? 'お気に入りから削除' : 'お気に入りに追加';
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById('authModal').style.display = 'block';
+            document.getElementById('userBar').style.display = 'none';
+        }
+
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginTab').style.background = 'var(--primary)';
+            document.getElementById('registerTab').style.background = 'var(--secondary)';
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('loginTab').style.background = 'var(--secondary)';
+            document.getElementById('registerTab').style.background = 'var(--primary)';
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                document.getElementById('authMessage').innerHTML = '<div style="color: var(--danger);">ユーザー名とパスワードを入力してください</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const responseText = await response.text();
+                const result = JSON.parse(responseText);
+
+                if (result.success) {
+                    currentUser = result.user;
+                    showMainApp();
+                } else {
+                    document.getElementById('authMessage').innerHTML = `<div style="color: var(--danger);">${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('authMessage').innerHTML = '<div style="color: var(--danger);">ログインエラーが発生しました</div>';
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const email = document.getElementById('registerEmail').value;
+            const team = document.getElementById('registerTeam').value;
+
+            if (!username || !password || !team) {
+                document.getElementById('authMessage').innerHTML = '<div style="color: var(--danger);">必須項目を入力してください</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/register.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, email, team })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('authMessage').innerHTML = `<div style="color: var(--success);">${result.message}</div>`;
+                    setTimeout(() => {
+                        showLogin();
+                        document.getElementById('loginUsername').value = username;
+                        document.getElementById('loginPassword').value = password;
+                    }, 1500);
+                } else {
+                    document.getElementById('authMessage').innerHTML = `<div style="color: var(--danger);">${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('authMessage').innerHTML = '<div style="color: var(--danger);">登録エラーが発生しました</div>';
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('./api/logout.php');
+                currentUser = null;
+                showAuthModal();
+                document.getElementById('searchResults').innerHTML = '';
+            } catch (error) {
+                console.error('ログアウトエラー:', error);
+            }
+        }
+
+        async function searchSongs() {
+            currentPage = 1;
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 300);
+        }
+
+        async function performSearch(page = currentPage) {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const searchType = document.getElementById('searchType').value;
+            const positionFilter = document.getElementById('positionFilter').value;
+            const shinrisenFilter = document.getElementById('shinrisenFilter').checked;
+            const favoritesFilter = document.getElementById('favoritesFilter').checked;
+
+            try {
+                let url, response, data;
+                
+                if (searchType === 'player') {
+                    // プレイヤー名検索
+                    url = `./api/search_by_player.php?page=${page}&player=${encodeURIComponent(searchTerm)}`;
+                    if (positionFilter) {
+                        url += `&position=${encodeURIComponent(positionFilter)}`;
+                    }
+                    if (shinrisenFilter) {
+                        url += `&shinrisen=1`;
+                    }
+                    // プレイヤー検索時はお気に入りフィルターは適用しない
+                } else {
+                    // 楽曲名検索（従来の機能）
+                    url = `./api/search.php?page=${page}&q=${encodeURIComponent(searchTerm)}`;
+                    if (positionFilter) {
+                        url += `&position=${encodeURIComponent(positionFilter)}`;
+                    }
+                    if (shinrisenFilter) {
+                        url += `&shinrisen=1`;
+                    }
+                    if (favoritesFilter) {
+                        url += `&favorites=1`;
+                    }
+                }
+
+                response = await fetch(url);
+                data = await response.json();
+                
+                currentPage = page;
+                displaySearchResults(data);
+            } catch (error) {
+                document.getElementById('searchResults').innerHTML = 
+                    '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>検索エラーが発生しました</p></div>';
+            }
+        }
+
+        function updateSearchPlaceholder() {
+            const searchInput = document.getElementById('searchInput');
+            const searchType = document.getElementById('searchType').value;
+            
+            if (searchType === 'player') {
+                searchInput.placeholder = 'プレイヤー名を検索...';
+            } else {
+                searchInput.placeholder = '楽曲名を検索...';
+            }
+        }
+
+        async function loadInitialSongs() {
+            await performSearch(1);
+        }
+
+        function changePage(newPage) {
+            if (newPage >= 1) {
+                performSearch(newPage);
+            }
+        }
+
+        async function displaySearchResults(data) {
+            const container = document.getElementById('searchResults');
+            const countElement = document.getElementById('resultsCount');
+            
+            if (data.error) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>${data.error}</p></div>`;
+                countElement.textContent = 'エラー';
+                return;
+            }
+
+            const songs = data.songs || [];
+            const pagination = data.pagination || {};
+            const isPlayerSearch = data.search_type === 'player';
+            
+            if (songs.length === 0) {
+                const emptyMessage = isPlayerSearch ? 
+                    '該当するプレイヤーのスコアが見つかりませんでした' : 
+                    '該当する楽曲が見つかりませんでした';
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>${emptyMessage}</p></div>`;
+                countElement.textContent = '0件の楽曲';
+                return;
+            }
+
+            let countText = `${pagination.total_records || songs.length}件中 ${((pagination.current_page - 1) * pagination.per_page) + 1}-${Math.min(pagination.current_page * pagination.per_page, pagination.total_records)}件を表示`;
+            if (isPlayerSearch && data.player_name) {
+                countText = `プレイヤー「${data.player_name}」: ` + countText;
+            }
+            countElement.textContent = countText;
+            
+            let html = '';
+            for (const song of songs) {
+                const positionBadge = `<span class="badge badge-position">${song.position_category}</span>`;
+                
+                let difficultyClass = 'badge-difficulty';
+                const difficulty = (song.difficulty || 'ANOTHER').toUpperCase();
+                if (difficulty === 'HYPER') {
+                    difficultyClass += ' hyper';
+                } else if (difficulty === 'ANOTHER') {
+                    difficultyClass += ' another';
+                } else if (difficulty === 'LEGGENDARIA') {
+                    difficultyClass += ' leggendaria';
+                }
+                
+                const difficultyBadge = `<span class="badge ${difficultyClass}">${song.difficulty || 'ANOTHER'}</span>`;
+                const shinrisenBadge = song.is_shinrisen == 1 ? `<span class="badge badge-shinrisen">心理戦</span>` : '';
+
+                // 曲名にダブルクォートが含まれる場合も考慮し、HTMLエンティティに変換します
+                const escapedTitleAttr = song.title.replace(/"/g, '&quot;');
+
+                // プレイヤー検索時は該当プレイヤーのスコア情報を表示、楽曲検索時は全スコアを取得
+                let scoresHtml = '';
+                try {
+                    if (isPlayerSearch && song.player_name) {
+                        // プレイヤー検索時：該当プレイヤーのスコア情報のみ表示
+                        const bbdPlayers = ['ゆうすけ', 'イリス', 'ゆーと', 'みゆ', 'まぐ', 'レクリア'];
+                        const playerBadgeClass = bbdPlayers.includes(song.player_name) ? 'badge badge-difficulty another' : 'badge badge-difficulty score-display';
+                        
+                        // 差分表記を計算
+                        const scoreDiff = song.score && song.total_notes ? formatScoreDifference(song.score, parseInt(song.total_notes)) : '';
+                        
+                        scoresHtml = `
+                            <div style="margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+                                <div style="padding: 0.5rem 0; margin: 0.25rem 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span class="${playerBadgeClass}" style="font-size: 0.75rem;">${song.player_name}</span>
+                                            ${song.recommended_options ? `<span style="color: var(--success); font-size: 0.8rem; font-weight: 600;">${song.recommended_options}</span>` : ''}
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                            ${scoreDiff ? `<span style="color: var(--secondary); font-size: 0.8rem; font-weight: 500;">${scoreDiff}</span>` : ''}
+                                            <span style="color: var(--text-primary); font-weight: 700; font-size: 1.3rem;">${song.score || '未記録'}</span>
+                                        </div>
+                                    </div>
+                                    ${song.notes ? `<div style="color: var(--text-secondary); font-size: 0.8rem;">${song.notes}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // 楽曲検索時：全プレイヤーのスコアを取得
+                        scoresHtml = await getScoresForSong(song.title, song.difficulty || '');
+                    }
+                } catch (error) {
+                    console.error('スコア取得エラー:', error);
+                    scoresHtml = '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア読み込みエラー</div>';
+                }
+
+                // お気に入り状態を確認
+                const favoriteKey = `${song.title}|${song.difficulty}`;
+                const isFavorite = userFavorites.has(favoriteKey);
+                const favoriteColor = isFavorite ? 'gold' : '#ccc';
+                const favoriteIcon = isFavorite ? '★' : '☆';
+                const favoriteTitle = isFavorite ? 'お気に入りから削除' : 'お気に入りに追加';
+
+                html += `
+                <div class="song-card" data-song-title="${escapedTitleAttr}" onclick="handleCardClick(this)" style="position: relative;">
+                    <button class="favorite-btn" 
+                            onclick="event.stopPropagation(); toggleFavorite('${song.title.replace(/'/g, "\\'")}', '${song.difficulty}');"
+                            style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: ${favoriteColor}; z-index: 10; padding: 4px;"
+                            title="${favoriteTitle}">
+                        ${favoriteIcon}
+                    </button>
+                    <div class="song-info">
+                        <div class="song-details">
+                            <div class="song-title">${song.title}</div>
+                            <div class="song-meta">
+                                ${positionBadge}
+                                ${difficultyBadge}
+                                ${shinrisenBadge}
+                            </div>
+                            ${scoresHtml}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+            
+            if (pagination.total_pages > 1) {
+                html += createPaginationHTML(pagination);
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function createPaginationHTML(pagination) {
+            let paginationHTML = '<div class="pagination-container">';
+            
+            if (pagination.has_prev) {
+                paginationHTML += `<button class="pagination-btn" onclick="changePage(${pagination.current_page - 1})">← 前へ</button>`;
+            } else {
+                paginationHTML += `<button class="pagination-btn disabled">← 前へ</button>`;
+            }
+            
+            const startPage = Math.max(1, pagination.current_page - 2);
+            const endPage = Math.min(pagination.total_pages, pagination.current_page + 2);
+            
+            if (startPage > 1) {
+                paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    paginationHTML += `<span class="pagination-dots">...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const isActive = i === pagination.current_page ? ' active' : '';
+                paginationHTML += `<button class="pagination-btn${isActive}" onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            if (endPage < pagination.total_pages) {
+                if (endPage < pagination.total_pages - 1) {
+                    paginationHTML += `<span class="pagination-dots">...</span>`;
+                }
+                paginationHTML += `<button class="pagination-btn" onclick="changePage(${pagination.total_pages})">${pagination.total_pages}</button>`;
+            }
+            
+            if (pagination.has_next) {
+                paginationHTML += `<button class="pagination-btn" onclick="changePage(${pagination.current_page + 1})">次へ →</button>`;
+            } else {
+                paginationHTML += `<button class="pagination-btn disabled">次へ →</button>`;
+            }
+            
+            paginationHTML += '</div>';
+            return paginationHTML;
+        }
+
+        async function getScoresForSong(songTitle, difficulty = '') {
+            try {
+                let url = `./api/scores.php?song_title=${encodeURIComponent(songTitle)}&include_average=1`;
+                if (difficulty) {
+                    url += `&difficulty=${encodeURIComponent(difficulty)}`;
+                }
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const scores = await response.json();
+                
+                // 総ノーツ数を取得
+                let totalNotes = null;
+                try {
+                    const songResponse = await fetch(`./api/search.php?q=${encodeURIComponent(songTitle)}`);
+                    const songData = await songResponse.json();
+                    if (songData.songs && songData.songs.length > 0) {
+                        const matchedSong = songData.songs.find(s => s.title === songTitle && (!difficulty || s.difficulty === difficulty));
+                        if (matchedSong && matchedSong.total_notes) {
+                            totalNotes = parseInt(matchedSong.total_notes);
+                        }
+                    }
+                } catch (error) {
+                    console.log('総ノーツ数取得エラー:', error);
+                }
+                
+                // エラーレスポンスのチェック
+                if (scores.error) {
+                    console.error('API error:', scores.error);
+                    return '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア読み込みエラー</div>';
+                }
+                
+                if (!Array.isArray(scores) || scores.length === 0) {
+                    return '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア未登録</div>';
+                }
+
+                // プレイヤー別にスコアをグループ化
+                const playerScores = {};
+                scores.forEach(score => {
+                    if (!playerScores[score.player_id]) {
+                        playerScores[score.player_id] = {
+                            player_name: score.player_name,
+                            normalScores: [],
+                            averageScores: [],
+                            recommended_options: '',
+                            notes: ''
+                        };
+                    }
+                    
+                    if (score.is_average_mode) {
+                        playerScores[score.player_id].averageScores.push(score);
+                    } else {
+                        playerScores[score.player_id].normalScores.push(score);
+                        playerScores[score.player_id].recommended_options = score.recommended_options;
+                        playerScores[score.player_id].notes = score.notes;
+                    }
+                });
+
+                let scoresHtml = '<div style="margin-top: 0.5rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">';
+                
+                Object.values(playerScores).forEach(playerData => {
+                    const bbdPlayers = ['ゆうすけ', 'イリス', 'ゆーと', 'みゆ', 'まぐ', 'レクリア'];
+                    const playerBadgeClass = bbdPlayers.includes(playerData.player_name) ? 'badge badge-difficulty another' : 'badge badge-difficulty score-display';
+                    
+                    const bestScore = playerData.normalScores.length > 0 ? 
+                        Math.max(...playerData.normalScores.map(s => s.score || 0)) : null;
+                    const avgScore = playerData.averageScores.length > 0 ? 
+                        Math.round(playerData.averageScores.reduce((sum, s) => sum + (s.score || 0), 0) / playerData.averageScores.length) : null;
+                    
+                    // 差分表記を計算
+                    const bestScoreDiff = bestScore && totalNotes ? formatScoreDifference(bestScore, totalNotes) : '';
+                    const avgScoreDiff = avgScore && totalNotes ? formatScoreDifference(avgScore, totalNotes) : '';
+                    
+                    scoresHtml += `
+                        <div style="padding: 0.5rem 0; margin: 0.25rem 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="${playerBadgeClass}" style="font-size: 0.75rem;">${playerData.player_name}</span>
+                                    ${playerData.recommended_options ? `<span style="color: var(--success); font-size: 0.8rem; font-weight: 600;">${playerData.recommended_options}</span>` : ''}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    ${bestScore ? `
+                                        <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                            ${bestScoreDiff ? `<span style="color: var(--secondary); font-size: 0.8rem; font-weight: 500;">${bestScoreDiff}</span>` : ''}
+                                            <span style="color: var(--text-primary); font-weight: 700; font-size: 1.3rem;">${bestScore}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${avgScore ? `
+                                        <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                            ${avgScoreDiff ? `<span style="color: var(--secondary); font-size: 0.8rem; font-weight: 500;">${avgScoreDiff}</span>` : ''}
+                                            <span style="color: var(--accent); font-weight: 600; font-size: 1.1rem;">Ave.${avgScore}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            ${playerData.notes ? `<div style="color: var(--text-secondary); font-size: 0.8rem;">${playerData.notes}</div>` : ''}
+                        </div>
+                    `;
+                });
+                scoresHtml += '</div>';
+                
+                return scoresHtml;
+            } catch (error) {
+                console.error('getScoresForSong error:', error);
+                return '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア読み込みエラー</div>';
+            }
+        }
+
+        function handleCardClick(element) {
+            const songTitle = element.dataset.songTitle;
+            // openScoreModalには、エスケープされていない元の曲名を渡します
+            openScoreModal(songTitle, songTitle);
+        }
+
+        async function openScoreModal(songId, songTitle) {
+            // 楽曲の難易度情報を取得
+            let songDifficulty = 'ANOTHER';
+            let totalNotes = null;
+            try {
+                const response = await fetch(`./api/search.php?q=${encodeURIComponent(songTitle)}`);
+                const data = await response.json();
+                if (data.songs && data.songs.length > 0) {
+                    const matchedSong = data.songs.find(s => s.title === songTitle);
+                    if (matchedSong) {
+                        songDifficulty = matchedSong.difficulty;
+                        totalNotes = matchedSong.total_notes;
+                    }
+                }
+            } catch (error) {
+                console.log('楽曲情報取得エラー:', error);
+            }
+            
+            currentSong = { id: songId, title: songTitle, difficulty: songDifficulty };
+            
+            // モーダルタイトルに総ノーツ数情報を追加
+            let modalTitle = songTitle;
+            if (totalNotes) {
+                modalTitle += ` (総ノーツ数: ${totalNotes}, 理論値: ${totalNotes * 2})`;
+            }
+            document.getElementById('modalSongTitle').textContent = modalTitle;
+            
+            await displayScoresTable();
+            
+            document.getElementById('scoreEditSection').style.display = 'none';
+            document.getElementById('toggleEditBtn').textContent = '📝 スコア編集';
+            
+            document.getElementById('scoreModal').style.display = 'block';
+        }
+
+        function toggleEditMode() {
+            const editSection = document.getElementById('scoreEditSection');
+            const toggleBtn = document.getElementById('toggleEditBtn');
+            
+            if (editSection.style.display === 'none') {
+                editSection.style.display = 'block';
+                toggleBtn.textContent = '👁️ スコア表示';
+                setupEditPlayers();
+            } else {
+                editSection.style.display = 'none';
+                toggleBtn.textContent = '📝 スコア編集';
+            }
+        }
+
+        function setupEditPlayers() {
+            const currentUserId = 1000 + currentUser.id; // ユーザーIDベースの一意なID
+            const editablePlayers = [
+                {id: currentUserId, name: currentUser.username, is_opponent: false},
+                {id: 1, name: 'ゆうすけ', is_opponent: true},
+                {id: 2, name: 'イリス', is_opponent: true},
+                {id: 3, name: 'ゆーと', is_opponent: true},
+                {id: 4, name: 'まぐ', is_opponent: true},
+                {id: 5, name: 'レクリア', is_opponent: true},
+                {id: 6, name: 'みゆ', is_opponent: true}
+            ];
+            
+            const tabsContainer = document.getElementById('playerTabs');
+            let tabsHtml = '';
+            
+            editablePlayers.forEach(player => {
+                const tabClass = player.is_opponent ? 'badge badge-difficulty another' : 'badge badge-difficulty kbm';
+                tabsHtml += `<span class="${tabClass}" style="cursor: pointer; margin: 0.25rem; padding: 0.5rem;" onclick="selectPlayerForEdit(${player.id}, '${player.name}')">${player.name}</span>`;
+            });
+            
+            tabsContainer.innerHTML = tabsHtml;
+            
+            if (editablePlayers.length > 0) {
+                setTimeout(() => {
+                    selectPlayerForEdit(editablePlayers[0].id, editablePlayers[0].name);
+                }, 100);
+            }
+        }
+
+        function selectPlayerForEdit(playerId, playerName) {
+            currentPlayer = { id: playerId, name: playerName };
+            
+            document.querySelectorAll('#playerTabs .badge').forEach(tab => {
+                tab.style.opacity = '0.6';
+                tab.style.transform = 'scale(1)';
+            });
+            
+            document.querySelectorAll('#playerTabs .badge').forEach(tab => {
+                if (tab.textContent === playerName) {
+                    tab.style.opacity = '1';
+                    tab.style.transform = 'scale(1.05)';
+                }
+            });
+            
+            displayScoreForm();
+        }
+
+        async function displayScoreForm() {
+            const container = document.getElementById('scoreFormContainer');
+            
+            let existingScore = null;
+            let averageScores = [];
+            try {
+                let url = `./api/scores.php?song_title=${encodeURIComponent(currentSong.title)}`;
+                if (currentSong.difficulty) {
+                    url += `&difficulty=${encodeURIComponent(currentSong.difficulty)}`;
+                }
+                const response = await fetch(url);
+                const scores = await response.json();
+                existingScore = scores.find(s => s.player_id == currentPlayer.id && !s.is_average_mode);
+                averageScores = scores.filter(s => s.player_id == currentPlayer.id && s.is_average_mode);
+            } catch (error) {
+                console.log('既存スコア取得エラー:', error);
+            }
+            
+            // 現在のユーザーのスコアかどうか判定
+            const isCurrentUserScore = currentPlayer.id >= 1000;
+            const deleteButtonHtml = (existingScore && isCurrentUserScore) ? 
+                `<button onclick="deleteScore()" class="score-button" style="background: var(--danger); grid-column: 1 / -1; padding: 0.75rem; margin-top: 0.5rem;">🗑️ スコア削除</button>` : '';
+            
+            // アベレージスコア表示
+            let averageScoresHtml = '';
+            if (averageScores.length > 0) {
+                const avgValue = Math.round(averageScores.reduce((sum, s) => sum + (s.score || 0), 0) / averageScores.length);
+                averageScoresHtml = `
+                    <div style="background: var(--background); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="font-weight: 600;">アベレージ: ${avgValue}</span>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem;">${averageScores.length}回計測</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                            ${averageScores.map(s => s.score).join(', ')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 現在の総ノーツ数を取得
+            let currentTotalNotes = '';
+            try {
+                const songResponse = await fetch(`./api/search.php?q=${encodeURIComponent(currentSong.title)}`);
+                const songData = await songResponse.json();
+                if (songData.songs && songData.songs.length > 0) {
+                    const matchedSong = songData.songs.find(s => s.title === currentSong.title && s.difficulty === (currentSong.difficulty || ''));
+                    if (matchedSong && matchedSong.total_notes) {
+                        currentTotalNotes = matchedSong.total_notes;
+                    }
+                }
+            } catch (error) {
+                console.log('総ノーツ数取得エラー:', error);
+            }
+
+            const formHtml = `
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button id="normalTab" onclick="switchScoreMode('normal')" class="score-button" style="flex: 1;">通常スコア</button>
+                        <button id="averageTab" onclick="switchScoreMode('average')" class="score-button" style="flex: 1; background: var(--secondary);">アベレージ機能</button>
+                        <button id="notesTab" onclick="switchScoreMode('notes')" class="score-button" style="flex: 1; background: var(--secondary);">総ノーツ数</button>
+                    </div>
+                    
+                    ${averageScoresHtml}
+                    
+                    <div id="normalForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">スコア</label>
+                            <input type="number" id="score" class="search-input" min="0" max="4444" placeholder="2000" value="${existingScore?.score || ''}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">ミスカン</label>
+                            <input type="number" id="missCount" class="search-input" min="0" placeholder="0" value="${existingScore?.miss_count || ''}">
+                        </div>
+                        
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">推奨オプション</label>
+                            <select id="recommendedOptions" class="filter-select">
+                                <option value="">選択してください</option>
+                                <option value="正規" ${existingScore?.recommended_options === '正規' ? 'selected' : ''}>正規</option>
+                                <option value="MIRROR" ${existingScore?.recommended_options === 'MIRROR' ? 'selected' : ''}>MIRROR</option>
+                                <option value="RANDOM" ${existingScore?.recommended_options === 'RANDOM' ? 'selected' : ''}>RANDOM</option>
+                                <option value="R-RANDOM" ${existingScore?.recommended_options === 'R-RANDOM' ? 'selected' : ''}>R-RANDOM</option>
+                                <option value="S-RANDOM" ${existingScore?.recommended_options === 'S-RANDOM' ? 'selected' : ''}>S-RANDOM</option>
+                            </select>
+                        </div>
+                        
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">注意点・備考</label>
+                            <textarea id="notes" class="search-input" style="min-height: 80px; resize: vertical;" placeholder="ラスト殺し、トリル地帯注意等">${existingScore?.notes || ''}</textarea>
+                        </div>
+                        
+                        <button onclick="saveScore(false)" class="score-button" style="grid-column: 1 / -1; padding: 0.75rem;">
+                            💾 スコア保存（${currentPlayer.name}）
+                        </button>
+                        ${deleteButtonHtml}
+                    </div>
+                    
+                    <div id="averageForm" style="display: none;">
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">アベレージ用スコア入力</label>
+                            <input type="number" id="avgScore" class="search-input" min="0" max="4444" placeholder="今回のスコア">
+                        </div>
+                        <button onclick="saveScore(true)" class="score-button" style="width: 100%; padding: 0.75rem;">
+                            ➕ アベレージに追加
+                        </button>
+                        ${averageScores.length > 0 ? `<button onclick="clearAverageScores()" class="score-button" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; background: var(--danger);">🗑️ アベレージ全削除</button>` : ''}
+                    </div>
+                    
+                    <div id="notesForm" style="display: none;">
+                        <div style="background: var(--background); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">楽曲情報</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                                楽曲名: ${currentSong.title}<br>
+                                難易度: ${currentSong.difficulty || 'ANOTHER'}
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">総ノーツ数</label>
+                            <input type="number" id="totalNotes" class="search-input" min="1" max="9999" placeholder="例: 2000" value="${currentTotalNotes}">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                                ※理論値（MAXスコア）= 総ノーツ数 × 2<br>
+                                ※この値は全ユーザーで共有されます
+                            </div>
+                        </div>
+                        
+                        <button onclick="updateTotalNotes()" class="score-button" style="width: 100%; padding: 0.75rem;">
+                            📊 総ノーツ数を更新
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = formHtml;
+        }
+
+        async function saveScore(isAverageMode = false) {
+            if (!currentSong || !currentPlayer) {
+                alert('楽曲またはプレイヤーが選択されていません');
+                return;
+            }
+
+            const scoreValue = isAverageMode ? 
+                document.getElementById('avgScore').value : 
+                document.getElementById('score').value;
+
+            const formData = {
+                song_id: currentSong.title,
+                player_id: currentPlayer.id,
+                difficulty: currentSong.difficulty || 'ANOTHER',
+                score: scoreValue || null,
+                clear_lamp: 'NC',
+                miss_count: isAverageMode ? 0 : (document.getElementById('missCount').value || 0),
+                recommended_options: isAverageMode ? '' : document.getElementById('recommendedOptions').value,
+                notes: isAverageMode ? '' : document.getElementById('notes').value,
+                position_category: '先鋒',
+                is_shinrisen: false,
+                is_average_mode: isAverageMode
+            };
+
+            try {
+                const response = await fetch('./api/scores.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(isAverageMode ? 'アベレージに追加しました！' : 'スコアを保存しました！');
+                    await displayScoresTable();
+                    await performSearch(currentPage);
+                    displayScoreForm(); // フォームを再描画
+                } else {
+                    alert('保存に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                alert('保存エラーが発生しました');
+            }
+        }
+
+        function switchScoreMode(mode) {
+            const normalTab = document.getElementById('normalTab');
+            const averageTab = document.getElementById('averageTab');
+            const notesTab = document.getElementById('notesTab');
+            const normalForm = document.getElementById('normalForm');
+            const averageForm = document.getElementById('averageForm');
+            const notesForm = document.getElementById('notesForm');
+
+            // すべてのタブを非アクティブに
+            normalTab.style.background = 'var(--secondary)';
+            averageTab.style.background = 'var(--secondary)';
+            notesTab.style.background = 'var(--secondary)';
+            normalForm.style.display = 'none';
+            averageForm.style.display = 'none';
+            notesForm.style.display = 'none';
+
+            if (mode === 'normal') {
+                normalTab.style.background = 'var(--primary)';
+                normalForm.style.display = 'grid';
+            } else if (mode === 'average') {
+                averageTab.style.background = 'var(--primary)';
+                averageForm.style.display = 'block';
+            } else if (mode === 'notes') {
+                notesTab.style.background = 'var(--primary)';
+                notesForm.style.display = 'block';
+            }
+        }
+
+        async function clearAverageScores() {
+            if (!confirm('アベレージスコアを全て削除しますか？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/scores.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        song_title: currentSong.title,
+                        player_id: currentPlayer.id,
+                        difficulty: currentSong.difficulty,
+                        clear_average: true
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('アベレージスコアを削除しました！');
+                    await displayScoresTable();
+                    await performSearch(currentPage);
+                    displayScoreForm();
+                } else {
+                    alert('削除に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                alert('削除エラーが発生しました');
+            }
+        }
+
+        async function deleteScore() {
+            if (!currentSong || !currentPlayer) {
+                alert('楽曲またはプレイヤーが選択されていません');
+                return;
+            }
+
+            // 確認ダイアログ
+            if (!confirm(`${currentPlayer.name}の「${currentSong.title}」のスコアを削除しますか？`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/scores.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        song_title: currentSong.title,
+                        player_id: currentPlayer.id,
+                        difficulty: currentSong.difficulty
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('スコアを削除しました！');
+                    await displayScoresTable();
+                    await performSearch(currentPage);
+                    displayScoreForm(); // フォームを再描画
+                } else {
+                    alert('削除に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                alert('削除エラーが発生しました');
+            }
+        }
+
+        async function displayScoresTable() {
+            const container = document.getElementById('scoresTable');
+            
+            try {
+                let url = `./api/scores.php?song_title=${encodeURIComponent(currentSong.title)}`;
+                if (currentSong.difficulty) {
+                    url += `&difficulty=${encodeURIComponent(currentSong.difficulty)}`;
+                }
+                const response = await fetch(url);
+                const scores = await response.json();
+                
+                if (scores.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">この楽曲にはスコアが登録されていません</div>';
+                    return;
+                }
+
+                let tableHtml = `
+                    <div class="scores-header" style="display: none; grid-template-columns: 150px 80px 80px 1fr; gap: 1rem; padding: 1rem; background: var(--background); border-radius: 8px; font-weight: 600; margin-bottom: 0.5rem;">
+                        <div>プレイヤー</div>
+                        <div>スコア</div>
+                        <div>ミス数</div>
+                        <div>備考</div>
+                    </div>
+                `;
+
+                // 総ノーツ数を取得
+                let totalNotes = null;
+                if (currentSong && currentSong.difficulty) {
+                    try {
+                        const songResponse = await fetch(`./api/search.php?q=${encodeURIComponent(currentSong.title)}`);
+                        const songData = await songResponse.json();
+                        if (songData.songs && songData.songs.length > 0) {
+                            const matchedSong = songData.songs.find(s => s.title === currentSong.title && s.difficulty === currentSong.difficulty);
+                            if (matchedSong && matchedSong.total_notes) {
+                                totalNotes = parseInt(matchedSong.total_notes);
+                            }
+                        }
+                    } catch (error) {
+                        console.log('総ノーツ数取得エラー:', error);
+                    }
+                }
+
+                scores.forEach(score => {
+                    const bbdPlayers = ['ゆうすけ', 'イリス', 'ゆーと', 'みゆ', 'まぐ', 'レクリア'];
+                    const playerBadgeClass = bbdPlayers.includes(score.player_name) ? 'badge badge-difficulty another' : 'badge badge-difficulty score-display';
+                    
+                    // 差分表記を計算
+                    const scoreDiff = score.score && totalNotes ? formatScoreDifference(score.score, totalNotes) : '';
+                    
+                    tableHtml += `
+                        <div class="score-row" style="border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.75rem; padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="${playerBadgeClass}" style="font-size: 0.8rem;">${score.player_name}</span>
+                                    ${score.recommended_options ? `<span style="color: var(--success); font-size: 0.8rem; font-weight: 600;">${score.recommended_options}</span>` : ''}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    ${scoreDiff ? `<span style="color: var(--secondary); font-size: 0.9rem; font-weight: 500;">${scoreDiff}</span>` : ''}
+                                    <span style="font-weight: 700; color: var(--primary); font-size: 1.2rem;">${score.score || '未記録'}</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="color: var(--text-secondary); font-size: 0.9rem;">ミスカン</span>
+                                <span style="font-weight: 600;">${score.miss_count || 0}</span>
+                            </div>
+                            ${score.notes ? `<div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4; word-wrap: break-word;">${score.notes}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = tableHtml;
+            } catch (error) {
+                container.innerHTML = '<div style="text-align: center; color: var(--danger); padding: 2rem;">スコア読み込みエラー</div>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('scoreModal').style.display = 'none';
+            currentSong = null;
+            currentPlayer = null;
+        }
+
+        function openCsvImportModal() {
+            document.getElementById('csvImportModal').style.display = 'block';
+            document.getElementById('csvImportProgress').innerHTML = '';
+        }
+
+        function closeCsvImportModal() {
+            document.getElementById('csvImportModal').style.display = 'none';
+            document.getElementById('csvImportFile').value = '';
+            document.getElementById('csvImportProgress').innerHTML = '';
+        }
+
+        async function updateTotalNotes() {
+            if (!currentSong) {
+                alert('楽曲が選択されていません');
+                return;
+            }
+
+            const totalNotesValue = document.getElementById('totalNotes').value;
+            
+            if (!totalNotesValue || totalNotesValue <= 0) {
+                alert('有効な総ノーツ数を入力してください');
+                return;
+            }
+
+            if (!confirm(`「${currentSong.title}」(${currentSong.difficulty || 'ANOTHER'})の総ノーツ数を${totalNotesValue}に更新しますか？\n\n※この変更は全ユーザーに反映されます`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/update_total_notes.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        song_title: currentSong.title,
+                        difficulty: currentSong.difficulty || 'ANOTHER',
+                        total_notes: parseInt(totalNotesValue)
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('総ノーツ数を更新しました！');
+                    await displayScoresTable();
+                    await performSearch(currentPage);
+                } else {
+                    alert('更新に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                alert('更新エラーが発生しました');
+            }
+        }
+
+        async function executeCsvImport() {
+            const fileInput = document.getElementById('csvImportFile');
+            const progressDiv = document.getElementById('csvImportProgress');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                progressDiv.innerHTML = '<div style="color: var(--danger);">CSVファイルを選択してください</div>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csvFile', fileInput.files[0]);
+
+            progressDiv.innerHTML = '<div class="loading"></div><span style="margin-left: 0.5rem;">インポート中...</span>';
+
+            try {
+                const response = await fetch('./api/import_csv_scores.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    progressDiv.innerHTML = `
+                        <div style="color: var(--success); margin-bottom: 1rem;">
+                            <strong>✅ インポート完了</strong>
+                        </div>
+                        <div style="font-size: 0.9rem; color: var(--text-primary);">
+                            処理件数: ${result.processed}件<br>
+                            新規登録: ${result.imported}件<br>
+                            更新: ${result.updated}件<br>
+                            スキップ: ${result.skipped}件
+                        </div>
+                    `;
+                    // 楽曲一覧を再読み込み
+                    setTimeout(() => {
+                        performSearch(currentPage);
+                    }, 1000);
+                } else {
+                    progressDiv.innerHTML = `<div style="color: var(--danger);">❌ ${result.message}</div>`;
+                }
+            } catch (error) {
+                progressDiv.innerHTML = '<div style="color: var(--danger);">❌ インポートエラーが発生しました</div>';
+            }
+        }
+
+        // テーマ切り替え機能
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (body.dataset.theme === 'dark') {
+                body.dataset.theme = 'light';
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.dataset.theme = 'dark';
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // ページ読み込み時にテーマを復元
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (savedTheme === 'dark') {
+                document.body.dataset.theme = 'dark';
+                themeIcon.textContent = '☀️';
+            } else {
+                document.body.dataset.theme = 'light';
+                themeIcon.textContent = '🌙';
+            }
+        });
+
+        window.onclick = function(event) {
+            const scoreModal = document.getElementById('scoreModal');
+            const csvModal = document.getElementById('csvImportModal');
+            if (event.target === scoreModal) {
+                closeModal();
+            }
+            if (event.target === csvModal) {
+                closeCsvImportModal();
+            }
+        }
+    </script>
+</body>
+</html>

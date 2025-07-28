@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ポジション別楽曲データインポート</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .position-card { background: white; margin: 20px 0; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .position-header { background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 10px 15px; border-radius: 5px; margin-bottom: 15px; }
+        textarea { width: 100%; height: 120px; font-family: monospace; border: 2px solid #ddd; border-radius: 5px; padding: 10px; }
+        .btn { background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #218838; }
+        .btn-clear { background: #dc3545; }
+        .btn-clear:hover { background: #c82333; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .import-all { text-align: center; margin: 30px 0; }
+        .btn-large { background: #007bff; font-size: 18px; padding: 15px 30px; }
+        .position-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 8px 15px; background: #e9ecef; border: none; border-radius: 20px; cursor: pointer; }
+        .tab.active { background: #667eea; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🎵 ポジション別楽曲データインポート</h1>
+    
+    <div class="position-tabs">
+        <button class="tab active" onclick="showAll()">全て表示</button>
+        <button class="tab" onclick="showPosition('先鋒')">先鋒</button>
+        <button class="tab" onclick="showPosition('次鋒')">次鋒</button>
+        <button class="tab" onclick="showPosition('中堅')">中堅</button>
+        <button class="tab" onclick="showPosition('副将')">副将</button>
+        <button class="tab" onclick="showPosition('大将')">大将</button>
+    </div>
+
+    <!-- 先鋒 -->
+    <div class="position-card" data-position="先鋒">
+        <div class="position-header">
+            <h2>先鋒（LV10）</h2>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <h4>通常曲</h4>
+                <textarea id="data-先鋒" placeholder="番号　曲名　難易度&#10;1　5.1.1.　ANOTHER&#10;2　Macho Gang　ANOTHER"></textarea>
+                <button class="btn" onclick="importPosition('先鋒', false)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('先鋒')">クリア</button>
+            </div>
+            <div style="flex: 1;">
+                <h4>心理戦</h4>
+                <textarea id="data-先鋒心理戦" placeholder="番号　曲名　難易度&#10;1　心理戦曲1　ANOTHER&#10;2　心理戦曲2　HYPER"></textarea>
+                <button class="btn" onclick="importPosition('先鋒', true)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('先鋒心理戦')">クリア</button>
+            </div>
+        </div>
+        <div id="result-先鋒"></div>
+    </div>
+
+    <!-- 次鋒 -->
+    <div class="position-card" data-position="次鋒">
+        <div class="position-header">
+            <h2>次鋒（LV11 L譜面除く）</h2>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <h4>通常曲</h4>
+                <textarea id="data-次鋒" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('次鋒', false)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('次鋒')">クリア</button>
+            </div>
+            <div style="flex: 1;">
+                <h4>心理戦</h4>
+                <textarea id="data-次鋒心理戦" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('次鋒', true)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('次鋒心理戦')">クリア</button>
+            </div>
+        </div>
+        <div id="result-次鋒"></div>
+    </div>
+
+    <!-- 中堅 -->
+    <div class="position-card" data-position="中堅">
+        <div class="position-header">
+            <h2>中堅（LV11全て）</h2>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <h4>通常曲</h4>
+                <textarea id="data-中堅" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('中堅', false)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('中堅')">クリア</button>
+            </div>
+            <div style="flex: 1;">
+                <h4>心理戦</h4>
+                <textarea id="data-中堅心理戦" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('中堅', true)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('中堅心理戦')">クリア</button>
+            </div>
+        </div>
+        <div id="result-中堅"></div>
+    </div>
+
+    <!-- 副将 -->
+    <div class="position-card" data-position="副将">
+        <div class="position-header">
+            <h2>副将</h2>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <h4>通常曲</h4>
+                <textarea id="data-副将" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('副将', false)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('副将')">クリア</button>
+            </div>
+            <div style="flex: 1;">
+                <h4>心理戦</h4>
+                <textarea id="data-副将心理戦" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('副将', true)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('副将心理戦')">クリア</button>
+            </div>
+        </div>
+        <div id="result-副将"></div>
+    </div>
+
+    <!-- 大将 -->
+    <div class="position-card" data-position="大将">
+        <div class="position-header">
+            <h2>大将</h2>
+        </div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <h4>通常曲</h4>
+                <textarea id="data-大将" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('大将', false)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('大将')">クリア</button>
+            </div>
+            <div style="flex: 1;">
+                <h4>心理戦</h4>
+                <textarea id="data-大将心理戦" placeholder="番号　曲名　難易度"></textarea>
+                <button class="btn" onclick="importPosition('大将', true)">インポート</button>
+                <button class="btn btn-clear" onclick="clearData('大将心理戦')">クリア</button>
+            </div>
+        </div>
+        <div id="result-大将"></div>
+    </div>
+
+    <div class="import-all">
+        <button class="btn btn-large" onclick="importAllPositions()">🚀 全ポジション一括インポート</button>
+        <p>各ポジションのデータを一度にインポートします</p>
+    </div>
+
+    <script>
+        function showAll() {
+            document.querySelectorAll('.position-card').forEach(card => card.style.display = 'block');
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function showPosition(position) {
+            document.querySelectorAll('.position-card').forEach(card => {
+                card.style.display = card.dataset.position === position ? 'block' : 'none';
+            });
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function clearData(position) {
+            document.getElementById('data-' + position).value = '';
+        }
+
+        async function importPosition(position, isShinrisen) {
+            const textareaId = isShinrisen ? `data-${position}心理戦` : `data-${position}`;
+            const data = document.getElementById(textareaId).value.trim();
+            
+            if (!data) {
+                alert('データを入力してください');
+                return;
+            }
+
+            // データをパース
+            const lines = data.split('\n');
+            const songs = [];
+            
+            lines.forEach(line => {
+                if (line.trim()) {
+                    const parts = line.trim().split('\t');
+                    if (parts.length >= 3) {
+                        songs.push({
+                            number: parseInt(parts[0]) || 0,
+                            title: parts[1] || '',
+                            difficulty: parts[2] || '',
+                            position: position,
+                            is_shinrisen: isShinrisen
+                        });
+                    }
+                }
+            });
+
+            if (songs.length === 0) {
+                alert('有効なデータが見つかりません');
+                return;
+            }
+
+            try {
+                const response = await fetch('./api/import_position_songs.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ songs: songs })
+                });
+
+                const responseText = await response.text();
+                console.log('API Response:', responseText); // デバッグ用
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (jsonError) {
+                    throw new Error('JSONパースエラー: ' + responseText.substring(0, 200));
+                }
+
+                const resultDiv = document.getElementById('result-' + position);
+                resultDiv.innerHTML = `<div class="${result.success ? 'result success' : 'result error'}">
+                    ${result.message}
+                </div>`;
+                
+            } catch (error) {
+                const resultDiv = document.getElementById('result-' + position);
+                resultDiv.innerHTML = `<div class="result error">エラー: ${error.message}</div>`;
+            }
+        }
+
+        async function importAllPositions() {
+            const positions = ['先鋒', '次鋒', '中堅', '副将', '大将'];
+            let totalImported = 0;
+            
+            for (const position of positions) {
+                // 通常曲
+                const normalData = document.getElementById(`data-${position}`).value.trim();
+                if (normalData) {
+                    await importPosition(position, false);
+                    totalImported++;
+                }
+                
+                // 心理戦
+                const shinrisenData = document.getElementById(`data-${position}心理戦`).value.trim();
+                if (shinrisenData) {
+                    await importPosition(position, true);
+                    totalImported++;
+                }
+            }
+            
+            alert(`${totalImported}カテゴリのデータをインポートしました`);
+        }
+    </script>
+</body>
+</html>

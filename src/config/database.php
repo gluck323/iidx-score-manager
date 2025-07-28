@@ -9,20 +9,11 @@ class Database {
     public $conn;
 
     public function __construct() {
-        // 環境判定：Xserverかローカル環境かを判定
-        if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], '.xsrv.jp') !== false) {
-            // Xserver環境の設定
-            $this->host = 'localhost'; // ここにXserverのMySQLホスト名を入力
-            $this->db_name = 'skyponet_iidxscoremanager'; // ここにXserverのデータベース名を入力
-            $this->username = 'kota_skyponet'; // ここにXserverのユーザー名を入力
-            $this->password = 'k0o1u2t3a'; // ここにXserverのパスワードを入力
-        } else {
-            // ローカル環境（XAMPP）の設定
-            $this->host = 'localhost';
-            $this->db_name = 'iidx_score_manager';
-            $this->username = 'root';
-            $this->password = '';
-        }
+        // Xserver環境の設定
+        $this->host = 'localhost';
+        $this->db_name = 'skyponet_iidxscoremanager';
+        $this->username = 'skyponet_kota';
+        $this->password = 'k0o1u2t3a';
     }
 
     public function getConnection() {
@@ -33,7 +24,10 @@ class Database {
             $this->conn->exec("set names utf8mb4");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch(PDOException $exception) {
-            echo "Connection error: " . $exception->getMessage();
+            // エラーをログに記録（echoではなく）
+            error_log("Database connection error: " . $exception->getMessage());
+            // nullを返してAPIで適切にハンドリングさせる
+            return null;
         }
         return $this->conn;
     }

@@ -632,7 +632,7 @@
         </div>
     </div>
 
-    <script src="./js/score-utils.js"></script>
+    <script src="./js/score-utils.js?v=<?php echo time(); ?>"></script>
     <script>
         let currentSong = null;
         let currentPlayer = null;
@@ -674,13 +674,27 @@
         async function loadUserFavorites() {
             try {
                 const response = await fetch('./api/favorites.php');
-                const result = await response.json();
+                
+                if (!response.ok) {
+                    console.log('お気に入りAPI HTTP エラー:', response.status);
+                    return;
+                }
+                
+                const text = await response.text();
+                if (!text) {
+                    console.log('お気に入りAPIからの空のレスポンス');
+                    return;
+                }
+                
+                const result = JSON.parse(text);
                 
                 if (result.success) {
                     userFavorites.clear();
                     result.favorites.forEach(fav => {
                         userFavorites.add(`${fav.song_title}|${fav.difficulty}`);
                     });
+                } else {
+                    console.log('お気に入り読み込み失敗:', result.message);
                 }
             } catch (error) {
                 console.log('お気に入り読み込みエラー:', error);
@@ -897,6 +911,10 @@
         }
 
         async function loadInitialSongs() {
+            // 初期読み込み時は空の検索で全楽曲を表示
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchType').value = 'song';
+            updateSearchPlaceholder();
             await performSearch(1);
         }
 
@@ -923,7 +941,9 @@
             if (songs.length === 0) {
                 const emptyMessage = isPlayerSearch ? 
                     '該当するプレイヤーのスコアが見つかりませんでした' : 
-                    '該当する楽曲が見つかりませんでした';
+                    (document.getElementById('searchInput').value === '' ? 
+                        '楽曲データが登録されていません。sample_data.sqlを実行してテストデータを追加してください。' : 
+                        '該当する楽曲が見つかりませんでした');
                 container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>${emptyMessage}</p></div>`;
                 countElement.textContent = '0件の楽曲';
                 return;
@@ -1000,7 +1020,7 @@
                 const favoriteTitle = isFavorite ? 'お気に入りから削除' : 'お気に入りに追加';
 
                 html += `
-                <div class="song-card" data-song-title="${escapedTitleAttr}" onclick="handleCardClick(this)" style="position: relative;">
+                <div class="song-card" data-song-title="${escapedTitleAttr}" data-difficulty="${song.difficulty || 'ANOTHER'}" onclick="handleCardClick(this)" style="position: relative;">
                     <button class="favorite-btn" 
                             onclick="event.stopPropagation(); toggleFavorite('${song.title.replace(/'/g, "\\'")}', '${song.difficulty}');"
                             style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: ${favoriteColor}; z-index: 10; padding: 4px;"
@@ -1084,6 +1104,12 @@
                 
                 const scores = await response.json();
                 
+                // デバッグ用ログ
+                console.log(`スコア取得中: "${songTitle}" (${difficulty})`, scores);
+                if (!Array.isArray(scores) || scores.length === 0) {
+                    console.log(`スコア取得URL: ${url}`);
+                }
+                
                 // 総ノーツ数を取得
                 let totalNotes = null;
                 try {
@@ -1106,6 +1132,7 @@
                 }
                 
                 if (!Array.isArray(scores) || scores.length === 0) {
+                    console.log(`スコアが見つかりません: ${songTitle} (${difficulty})`);
                     return '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア未登録</div>';
                 }
 
@@ -1177,25 +1204,32 @@
                 return scoresHtml;
             } catch (error) {
                 console.error('getScoresForSong error:', error);
-                return '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア読み込みエラー</div>';
+                console.error('楽曲:', songTitle, '難易度:', difficulty);
+                return '<div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">スコア読み込みエラー: ' + error.message + '</div>';
             }
         }
 
         function handleCardClick(element) {
             const songTitle = element.dataset.songTitle;
-            // openScoreModalには、エスケープされていない元の曲名を渡します
-            openScoreModal(songTitle, songTitle);
+            const difficulty = element.dataset.difficulty;
+            // openScoreModalには、エスケープされていない元の曲名と難易度を渡します
+            openScoreModal(songTitle, songTitle, difficulty);
         }
 
-        async function openScoreModal(songId, songTitle) {
+        async function openScoreModal(songId, songTitle, difficulty) {
             // 楽曲の難易度情報を取得
-            let songDifficulty = 'ANOTHER';
+            let songDifficulty = difficulty || 'ANOTHER';
             let totalNotes = null;
             try {
                 const response = await fetch(`./api/search.php?q=${encodeURIComponent(songTitle)}`);
                 const data = await response.json();
                 if (data.songs && data.songs.length > 0) {
-                    const matchedSong = data.songs.find(s => s.title === songTitle);
+                    // 難易度を考慮して楽曲を検索
+                    let matchedSong = data.songs.find(s => s.title === songTitle && s.difficulty === songDifficulty);
+                    // 指定難易度が見つからない場合は任意の難易度を取得
+                    if (!matchedSong) {
+                        matchedSong = data.songs.find(s => s.title === songTitle);
+                    }
                     if (matchedSong) {
                         songDifficulty = matchedSong.difficulty;
                         totalNotes = matchedSong.total_notes;
@@ -1774,6 +1808,24 @@
                 themeIcon.textContent = '🌙';
             }
         });
+
+        // デバッグ用: 楽曲とスコアのデータ照合チェック
+        async function debugSongsData() {
+            try {
+                const response = await fetch('./api/debug_songs.php');
+                const data = await response.json();
+                console.log('=== デバッグ情報 ===');
+                console.log('position_songs:', data.position_songs);
+                console.log('scores_songs:', data.scores_songs);
+                console.log('players:', data.players);
+                console.log(`position_songs: ${data.position_count}件`);
+                console.log(`scores: ${data.scores_count}件`);
+                console.log(`players: ${data.players_count}件`);
+                return data;
+            } catch (error) {
+                console.error('デバッグ情報取得エラー:', error);
+            }
+        }
 
         window.onclick = function(event) {
             const scoreModal = document.getElementById('scoreModal');

@@ -54,7 +54,8 @@ function calculateScoreDifference(score, totalNotes) {
     
     // 各ランクとの差分
     for (const [level, border] of Object.entries(borders)) {
-        const diff = score - border;
+        // 筐体と同じ計算方式: score - (border + 1)
+        const diff = score - (border + 1);
         candidates.push({
             difference: Math.abs(diff),
             prefix: diff >= 0 ? '+' : '-',

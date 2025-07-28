@@ -10,6 +10,13 @@ include_once '../../src/config/database.php';
 
 $database = new Database();
 $db = $database->getConnection();
+
+// データベース接続チェック
+if (!$db) {
+    echo json_encode(["error" => "データベース接続エラーが発生しました"]);
+    exit;
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
@@ -25,11 +32,12 @@ switch($method) {
                 
                 if ($difficulty) {
                     // 難易度指定がある場合、その難易度のスコアのみ取得
+                    // 空文字の難易度も考慮して OR 条件を追加
                     $stmt = $db->prepare("
                         SELECT s.*, p.name as player_name, p.is_opponent 
                         FROM scores s 
                         JOIN players p ON s.player_id = p.id 
-                        WHERE s.song_title = ? AND s.difficulty = ? {$averageCondition}
+                        WHERE s.song_title = ? AND (s.difficulty = ? OR s.difficulty = '') {$averageCondition}
                         ORDER BY s.score DESC, p.name ASC
                     ");
                     $stmt->execute([$song_title, $difficulty]);
@@ -49,6 +57,10 @@ switch($method) {
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $scores[] = $row;
                 }
+                
+                // デバッグ情報を追加
+                error_log("Scores API: song_title={$song_title}, difficulty={$difficulty}, include_average={$include_average}, found=" . count($scores) . " scores");
+                
                 echo json_encode($scores);
             } catch (Exception $e) {
                 echo json_encode(["error" => $e->getMessage()]);

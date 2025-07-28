@@ -9,6 +9,12 @@ include_once '../../src/config/database.php';
 $database = new Database();
 $db = $database->getConnection();
 
+// データベース接続チェック
+if (!$db) {
+    echo json_encode(array("error" => "データベース接続エラーが発生しました"));
+    exit;
+}
+
 session_start();
 
 $search_term = isset($_GET['q']) ? $_GET['q'] : '';

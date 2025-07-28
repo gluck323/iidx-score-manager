@@ -15,6 +15,13 @@ if (!isset($_SESSION['user_id'])) {
 
 $database = new Database();
 $db = $database->getConnection();
+
+// データベース接続チェック
+if (!$db) {
+    echo json_encode(["success" => false, "message" => "データベース接続エラーが発生しました"]);
+    exit;
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 try {

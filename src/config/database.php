@@ -12,10 +12,10 @@ class Database {
         // 環境判定：Xserverかローカル環境かを判定
         if (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], '.xsrv.jp') !== false) {
             // Xserver環境の設定
-            $this->host = 'mysql***.xserver.jp'; // ここにXserverのMySQLホスト名を入力
-            $this->db_name = 'your_database_name'; // ここにXserverのデータベース名を入力
-            $this->username = 'your_username'; // ここにXserverのユーザー名を入力
-            $this->password = 'your_password'; // ここにXserverのパスワードを入力
+            $this->host = 'localhost'; // ここにXserverのMySQLホスト名を入力
+            $this->db_name = 'skyponet_iidxscoremanager'; // ここにXserverのデータベース名を入力
+            $this->username = 'kota_skyponet'; // ここにXserverのユーザー名を入力
+            $this->password = 'k0o1u2t3a'; // ここにXserverのパスワードを入力
         } else {
             // ローカル環境（XAMPP）の設定
             $this->host = 'localhost';

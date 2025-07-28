@@ -1,4 +1,4 @@
-// public/api/stats.php - 統計情報取得
+
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
